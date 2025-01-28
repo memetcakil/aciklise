@@ -220,7 +220,7 @@
                 try {
                     const response = await fetch('/process-image', {
                         method: 'POST',
-                        body: formData
+                        body: blob  // FormData yerine direkt blob gönder
                     });
 
                     if (response.ok) {
