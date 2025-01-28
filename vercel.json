@@ -2,10 +2,25 @@
   "version": 2,
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
-    { "src": "api/**/*.js", "use": "@vercel/node" }
+    { 
+      "src": "api/**/*.js", 
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 10
+      }
+    }
   ],
   "routes": [
-    { "src": "/process-image", "dest": "/api/process-image.js" },
+    { 
+      "src": "/process-image", 
+      "dest": "/api/process-image.js",
+      "methods": ["POST"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 } 

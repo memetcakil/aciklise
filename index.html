@@ -214,13 +214,13 @@
             });
 
             canvas.toBlob(async function(blob) {
-                const formData = new FormData();
-                formData.append('image', blob, fileName);
-
                 try {
                     const response = await fetch('/process-image', {
                         method: 'POST',
-                        body: blob  // FormData yerine direkt blob gönder
+                        headers: {
+                            'Content-Type': 'image/jpeg'
+                        },
+                        body: blob
                     });
 
                     if (response.ok) {
@@ -228,13 +228,15 @@
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = fileName;  // İndirilen dosya adını ayarla
+                        a.download = fileName;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         window.URL.revokeObjectURL(url);
                     } else {
-                        alert('Görüntü işlenirken bir hata oluştu');
+                        const errorData = await response.json();
+                        console.error('Sunucu hatası:', errorData);
+                        alert('Görüntü işlenirken bir hata oluştu: ' + errorData.error);
                     }
                 } catch (error) {
                     console.error('Hata:', error);
