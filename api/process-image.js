@@ -22,7 +22,8 @@ module.exports = async (req, res) => {
 
         // Görüntüyü işle
         const processedBuffer = await sharp(buffer, {
-            failOnError: false // Hatalı görüntüleri tolere et
+            failOnError: false,
+            density: 400  // DPI ayarı
         })
         .resize(394, 512, {
             fit: 'fill',
@@ -31,9 +32,18 @@ module.exports = async (req, res) => {
         .jpeg({
             quality: 100,
             chromaSubsampling: '4:4:4',
-            force: true // JPEG çıktısını zorla
+            force: true,
+            density: 400,  // JPEG için DPI ayarı
+            resolutionUnit: 'inch'  // DPI birimini belirt
         })
-        .toBuffer();
+        .withMetadata({  // Metadata'yı koru ve güncelle
+            density: 400,
+            resolutionUnit: 'inch'
+        })
+        .toBuffer({ resolveWithObject: true })  // Metadata ile birlikte buffer döndür
+        .then(({ data, info }) => {
+            return data;
+        });
 
         // Response headers
         res.setHeader('Content-Type', 'image/jpeg');
