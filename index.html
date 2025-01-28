@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fotoğraf Kırpma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #666;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .image-container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        #preview {
+            max-width: 100%;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #2980b9;
+        }
+
+        #cropButton {
+            padding: 12px 30px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s ease;
+        }
+
+        #cropButton:hover:not(:disabled) {
+            background-color: #27ae60;
+        }
+
+        #cropButton:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .specs {
+            background: #f1f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        .specs h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .specs ul {
+            list-style-type: none;
+        }
+
+        .specs li {
+            margin: 8px 0;
+            color: #34495e;
+        }
+
+        .specs li:before {
+            content: "•";
+            color: #3498db;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Fotoğraf Düzenleme Aracı</h1>
+            <p>Bu araç ile fotoğraflarınızı profesyonel standartlarda düzenleyebilirsiniz. 
+               Yüklediğiniz fotoğrafı istediğiniz şekilde kırpabilir ve otomatik olarak 
+               394x512 piksel boyutunda, 400 DPI çözünürlükte çıktı alabilirsiniz.</p>
+        </div>
+
+        <div class="specs">
+            <h3>Çıktı Özellikleri:</h3>
+            <ul>
+                <li>Boyut: 394 x 512 piksel</li>
+                <li>Çözünürlük: 400 DPI</li>
+                <li>Format: JPEG</li>
+                <li>Kalite: %100</li>
+            </ul>
+        </div>
+
+        <div class="button-container">
+            <label for="imageInput" class="upload-btn">
+                Fotoğraf Seç
+            </label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        
+        <div class="image-container">
+            <img id="preview">
+        </div>
+        
+        <div class="button-container">
+            <button id="cropButton" disabled>Görüntüyü İşle</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        let cropper;
+        const preview = document.getElementById('preview');
+        const imageInput = document.getElementById('imageInput');
+        const cropButton = document.getElementById('cropButton');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(preview, {
+                        aspectRatio: 394/512,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        ready: function() {
+                            cropButton.disabled = false;
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cropButton.addEventListener('click', async function() {
+            if (!cropper) return;
+            
+            cropButton.disabled = true;
+            cropButton.textContent = 'İşleniyor...';
+
+            // Tarih ve saat formatını oluştur
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('tr-TR').replace(/\./g, '-');
+            const timeStr = now.toLocaleTimeString('tr-TR').replace(/:/g, '-');
+            const fileName = `cikti-${dateStr}-${timeStr}.jpg`;
+
+            const canvas = cropper.getCroppedCanvas({
+                width: 394,
+                height: 512
+            });
+
+            canvas.toBlob(async function(blob) {
+                const formData = new FormData();
+                formData.append('image', blob, fileName);
+
+                try {
+                    const response = await fetch('/process-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;  // İndirilen dosya adını ayarla
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        alert('Görüntü işlenirken bir hata oluştu');
+                    }
+                } catch (error) {
+                    console.error('Hata:', error);
+                    alert('Görüntü işlenirken bir hata oluştu');
+                } finally {
+                    cropButton.disabled = false;
+                    cropButton.textContent = 'Görüntüyü İşle';
+                }
+            }, 'image/jpeg', 1.0);
+        });
+    </script>
+</body>
+</html> 
