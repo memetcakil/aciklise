@@ -218,7 +218,8 @@
                     const response = await fetch('/process-image', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'image/jpeg'
+                            'Accept': 'image/jpeg',
+                            'Content-Type': 'application/octet-stream'
                         },
                         body: blob
                     });
@@ -236,7 +237,8 @@
                     } else {
                         const errorData = await response.json();
                         console.error('Sunucu hatası:', errorData);
-                        alert('Görüntü işlenirken bir hata oluştu: ' + errorData.error);
+                        alert('Görüntü işlenirken bir hata oluştu: ' + 
+                              (errorData.details || errorData.error));
                     }
                 } catch (error) {
                     console.error('Hata:', error);

@@ -6,8 +6,19 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Request body'yi buffer'a çevir
-        const buffer = Buffer.from(await req.body);
+        // Raw body'yi al
+        const chunks = [];
+        for await (const chunk of req) {
+            chunks.push(chunk);
+        }
+        const buffer = Buffer.concat(chunks);
+
+        if (!buffer || buffer.length === 0) {
+            return res.status(400).json({ 
+                error: 'Geçersiz görüntü verisi',
+                details: 'Görüntü verisi bulunamadı' 
+            });
+        }
 
         // Görüntüyü işle
         const processedBuffer = await sharp(buffer, {
